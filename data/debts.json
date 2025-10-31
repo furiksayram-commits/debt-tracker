@@ -30,12 +30,19 @@
         "comment": "",
         "date": "2025-10-31T11:04:40.603Z",
         "type": "payment"
+      },
+      {
+        "id": "1761915434374",
+        "amount": 2000,
+        "comment": "",
+        "date": "2025-10-31T12:57:14.374Z",
+        "type": "payment"
       }
     ],
     "totalAmount": 10000,
-    "totalPaid": 4000,
+    "totalPaid": 6000,
     "createdAt": "2025-10-31T10:39:35.337Z",
-    "updatedAt": "2025-10-31T11:04:40.603Z"
+    "updatedAt": "2025-10-31T12:57:14.375Z"
   },
   {
     "id": "1761908365953",
@@ -81,5 +88,29 @@
     "totalPaid": 4500,
     "createdAt": "2025-10-31T10:59:25.953Z",
     "updatedAt": "2025-10-31T11:01:15.625Z"
+  },
+  {
+    "id": "1761915357527",
+    "name": "Furik",
+    "debts": [
+      {
+        "id": "1761915357527",
+        "amount": 555555,
+        "comment": "555",
+        "date": "2025-10-31T12:55:57.527Z",
+        "type": "debt"
+      },
+      {
+        "id": "1761915444201",
+        "amount": 5000,
+        "comment": "",
+        "date": "2025-10-31T12:57:24.201Z",
+        "type": "debt"
+      }
+    ],
+    "totalAmount": 560555,
+    "totalPaid": 0,
+    "createdAt": "2025-10-31T12:55:57.527Z",
+    "updatedAt": "2025-10-31T12:57:24.202Z"
   }
 ]
