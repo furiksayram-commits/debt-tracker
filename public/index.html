@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Учет долгов</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 Долги</h1>
+            <p>Простая система учета</p>
+        </header>
+
+        <div class="card">
+            <h2>📝 Новый долг</h2>
+            <form id="debtForm">
+                <div class="form-group">
+                    <input type="text" id="name" placeholder="Имя должника" required>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="amount" placeholder="Сумма долга" step="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="comment" placeholder="Комментарий (необязательно)"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    💰 Добавить долг
+                </button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>📊 Статистика</h2>
+            <div id="statsContainer">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">0₸</div>
+                        <div class="stat-label">Всего долг</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">0₸</div>
+                        <div class="stat-label">Осталось</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">0₸</div>
+                        <div class="stat-label">Оплачено</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Активных</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔍 Поиск</h2>
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Введите имя должника...">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>👥 Список должников</h2>
+            <div id="debtsContainer">
+                <div class="empty-state">
+                    <h3>📝 Нет долгов</h3>
+                    <p>Добавьте первый долг</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
