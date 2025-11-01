@@ -42,7 +42,11 @@ class DebtTracker {
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 this.searchDebts(e.target.value);
+                this.toggleClearButton(searchInput);
             });
+            
+            // Добавляем крестик для поиска
+            this.addClearButton(searchInput);
         }
 
         // Автодополнение для поля имени
@@ -50,15 +54,69 @@ class DebtTracker {
         if (nameInput) {
             nameInput.addEventListener('input', (e) => {
                 this.handleNameInput(e.target.value);
+                this.toggleClearButton(nameInput);
             });
             
             nameInput.addEventListener('focus', (e) => {
                 this.handleNameInput(e.target.value);
+                this.toggleClearButton(nameInput);
             });
             
             nameInput.addEventListener('blur', () => {
-                setTimeout(() => this.hideSuggestions(), 200);
+                setTimeout(() => {
+                    this.hideSuggestions();
+                }, 200);
             });
+            
+            // Добавляем крестик для имени
+            this.addClearButton(nameInput);
+        }
+    }
+    // Метод для добавления крестика очистки
+    addClearButton(inputElement) {
+        // Создаем кнопку очистки
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.className = 'clear-input';
+        clearButton.innerHTML = '×';
+        clearButton.title = 'Очистить поле';
+        
+        // Добавляем обработчик клика
+        clearButton.addEventListener('click', () => {
+            inputElement.value = '';
+            inputElement.focus();
+            this.toggleClearButton(inputElement);
+            
+            // Если это поле поиска, сбрасываем поиск
+            if (inputElement.id === 'search') {
+                this.searchDebts('');
+            }
+            
+            // Если это поле имени, скрываем подсказки
+            if (inputElement.id === 'name') {
+                this.hideSuggestions();
+            }
+        });
+        
+        // Добавляем класс для дополнительного отступа
+        inputElement.classList.add('has-clear-button');
+        
+        // Вставляем кнопку после поля ввода
+        inputElement.parentNode.appendChild(clearButton);
+        
+        // Инициализируем состояние кнопки
+        this.toggleClearButton(inputElement);
+    }
+
+    // Метод для показа/скрытия крестика
+    toggleClearButton(inputElement) {
+        const clearButton = inputElement.parentNode.querySelector('.clear-input');
+        if (clearButton) {
+            if (inputElement.value.length > 0) {
+                clearButton.classList.add('visible');
+            } else {
+                clearButton.classList.remove('visible');
+            }
         }
     }
 
@@ -279,7 +337,12 @@ class DebtTracker {
 
     clearForm() {
         const form = document.getElementById('debtForm');
-        if (form) form.reset();
+        if (form) {
+            form.reset();
+            // Скрываем крестики после очистки формы
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(input => this.toggleClearButton(input));
+        }
     }
 
     async addMoreDebt(debtorId) {
