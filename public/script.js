@@ -1,7 +1,7 @@
 class DebtTracker {
     constructor() {
         this.debts = [];
-        this.currentFilter = 'all'; // 'all', 'active', 'paid'
+        this.currentFilter = 'all';
         this.init();
     }
 
@@ -44,13 +44,130 @@ class DebtTracker {
                 this.searchDebts(e.target.value);
             });
         }
+
+        // Автодополнение для поля имени
+        const nameInput = document.getElementById('name');
+        if (nameInput) {
+            nameInput.addEventListener('input', (e) => {
+                this.handleNameInput(e.target.value);
+            });
+            
+            nameInput.addEventListener('focus', (e) => {
+                this.handleNameInput(e.target.value);
+            });
+            
+            nameInput.addEventListener('blur', () => {
+                setTimeout(() => this.hideSuggestions(), 200);
+            });
+        }
+    }
+
+    handleNameInput(value) {
+        const suggestionsContainer = document.getElementById('nameSuggestions');
+        if (!suggestionsContainer) {
+            this.createSuggestionsContainer();
+        }
+        
+        if (value.length < 1) {
+            this.hideSuggestions();
+            return;
+        }
+        
+        const matches = this.findNameMatches(value);
+        this.showSuggestions(matches, value);
+    }
+
+    createSuggestionsContainer() {
+        const nameInput = document.getElementById('name');
+        const container = document.createElement('div');
+        container.id = 'nameSuggestions';
+        container.className = 'suggestions-container';
+        nameInput.parentNode.appendChild(container);
+    }
+
+    findNameMatches(query) {
+        const lowerQuery = query.toLowerCase();
+        return this.debts
+            .filter(debtor => debtor.name.toLowerCase().includes(lowerQuery))
+            .slice(0, 5)
+            .map(debtor => debtor.name);
+    }
+
+    showSuggestions(matches, currentValue) {
+        const container = document.getElementById('nameSuggestions');
+        if (!container) return;
+        
+        if (matches.length === 0) {
+            this.hideSuggestions();
+            return;
+        }
+        
+        const suggestionsHtml = matches.map(name => {
+            const debtor = this.debts.find(d => d.name === name);
+            const remaining = debtor.totalAmount - debtor.totalPaid;
+            const status = remaining > 0 ? ` (остаток: ${this.formatNumber(remaining)}₸)` : ' (оплачено)';
+            
+            return `
+                <div class="suggestion-item" data-name="${name}">
+                    <span class="suggestion-name">${this.escapeHtml(name)}</span>
+                    <span class="suggestion-status">${status}</span>
+                </div>
+            `;
+        }).join('');
+        
+        container.innerHTML = suggestionsHtml;
+        container.style.display = 'block';
+        
+        container.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const name = item.getAttribute('data-name');
+                document.getElementById('name').value = name;
+                this.hideSuggestions();
+                this.showExistingDebtorInfo(name);
+            });
+        });
+    }
+
+    showExistingDebtorInfo(name) {
+        const debtor = this.debts.find(d => d.name === name);
+        if (!debtor) return;
+        
+        const remaining = debtor.totalAmount - debtor.totalPaid;
+        let message = `Должник "${name}" уже существует.\n`;
+        message += `Общий долг: ${this.formatNumber(debtor.totalAmount)}₸\n`;
+        message += `Оплачено: ${this.formatNumber(debtor.totalPaid)}₸\n`;
+        
+        if (remaining > 0) {
+            message += `Остаток: ${this.formatNumber(remaining)}₸`;
+        } else if (remaining < 0) {
+            message += `Переплата: ${this.formatNumber(Math.abs(remaining))}₸`;
+        } else {
+            message += `Баланс: 0₸`;
+        }
+        
+        this.showInfo(message);
+    }
+
+    showInfo(message) {
+        const info = document.createElement('div');
+        info.className = 'notification info';
+        info.style.cssText = `position:fixed;top:20px;right:20px;left:20px;padding:15px;border-radius:8px;color:white;font-weight:600;z-index:1001;text-align:center;background:#3b82f6;box-shadow:0 4px 12px rgba(0,0,0,0.2);`;
+        info.textContent = message;
+        document.body.appendChild(info);
+        setTimeout(() => info.remove(), 4000);
+    }
+
+    hideSuggestions() {
+        const container = document.getElementById('nameSuggestions');
+        if (container) {
+            container.style.display = 'none';
+        }
     }
 
     setupFilterButtons() {
         const statsContainer = document.getElementById('statsContainer');
         if (!statsContainer) return;
 
-        // Добавляем обработчики клика на статистику
         statsContainer.addEventListener('click', (e) => {
             const statItem = e.target.closest('.stat-item');
             if (!statItem) return;
@@ -70,7 +187,6 @@ class DebtTracker {
     filterDebts(filterType) {
         this.currentFilter = filterType;
         
-        // Обновляем активную кнопку фильтра
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
         });
@@ -83,21 +199,17 @@ class DebtTracker {
     }
 
     sortDebts() {
-        // Сначала активные долги (остаток > 0), потом оплаченные
         this.debts.sort((a, b) => {
             const aRemaining = a.totalAmount - a.totalPaid;
             const bRemaining = b.totalAmount - b.totalPaid;
             
-            // Активные долги сначала
             if (aRemaining > 0 && bRemaining <= 0) return -1;
             if (aRemaining <= 0 && bRemaining > 0) return 1;
             
-            // Сортировка по убыванию остатка для активных долгов
             if (aRemaining > 0 && bRemaining > 0) {
                 return bRemaining - aRemaining;
             }
             
-            // Сортировка по имени для оплаченных
             return a.name.localeCompare(b.name);
         });
     }
@@ -132,6 +244,8 @@ class DebtTracker {
             return;
         }
 
+        this.hideSuggestions();
+
         const btn = document.querySelector('#debtForm button');
         const originalText = btn.innerHTML;
         btn.innerHTML = '⏳ Добавляем...';
@@ -150,7 +264,6 @@ class DebtTracker {
                 await this.loadDebts();
                 this.clearForm();
                 this.showSuccess('Долг успешно добавлен!');
-                // После добавления показываем все долги
                 this.filterDebts('all');
             } else {
                 this.showError(result.error || 'Ошибка при добавлении');
@@ -259,7 +372,7 @@ class DebtTracker {
                 <div class="history-record">
                     <div class="record-info">
                         <div class="record-type ${record.type}">
-                            ${record.type === 'debt' ? '📝 Долг' : '💳 Платеж'}
+                            ${record.type === 'debt' ? '📝 Долг' : '💵 Платеж'}
                         </div>
                         <div class="record-date">
                             ${new Date(record.date).toLocaleDateString('ru-RU')}
@@ -270,9 +383,7 @@ class DebtTracker {
                         <div class="record-sum ${record.type}">
                             ${record.type === 'debt' ? '+' : '-'}${this.formatNumber(record.amount)}₸
                         </div>
-                        <div class="record-balance ${isOverpaid ? 'overpaid' : ''}">
-                            Баланс: ${this.formatNumber(runningBalance)}₸
-                        </div>
+                       
                     </div>
                 </div>
             `;
@@ -297,7 +408,7 @@ class DebtTracker {
                 <div class="history-section"><h4>История операций</h4><div class="history-list">${recordsHtml || '<div class="no-records">Нет записей</div>'}</div></div>
                 <div class="details-actions">
                     <button class="btn-action btn-add-debt" onclick="debtTracker.addMoreDebt('${debtor.id}')">➕ Добавить долг</button>
-                    <button class="btn-action btn-add-payment" onclick="debtTracker.showPaymentDialog('${debtor.id}')">💳 Внести платеж</button>
+                    <button class="btn-action btn-add-payment" onclick="debtTracker.showPaymentDialog('${debtor.id}')">💵 Внести платеж</button>
                 </div>
             </div>
         `;
@@ -420,7 +531,7 @@ class DebtTracker {
                             </div>
                         </div>
                         <div class="debt-actions-compact">
-                            <button class="btn-icon btn-pay" onclick="debtTracker.showPaymentDialog('${debtor.id}')">💳</button>
+                            <button class="btn-icon btn-pay" onclick="debtTracker.showPaymentDialog('${debtor.id}')">💵</button>
                             <button class="btn-icon btn-add" onclick="debtTracker.addMoreDebt('${debtor.id}')">➕</button>
                             <button class="btn-icon btn-delete" onclick="debtTracker.deleteDebt('${debtor.id}')">🗑️</button>
                         </div>
