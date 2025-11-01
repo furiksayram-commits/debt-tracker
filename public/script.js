@@ -1,6 +1,7 @@
 class DebtTracker {
     constructor() {
         this.debts = [];
+        this.currentFilter = 'all'; // 'all', 'active', 'paid'
         this.init();
     }
 
@@ -11,6 +12,7 @@ class DebtTracker {
     async init() {
         await this.loadDebts();
         this.setupEventListeners();
+        this.setupFilterButtons();
     }
 
     async loadDebts() {
@@ -18,6 +20,7 @@ class DebtTracker {
             const response = await fetch('/api/debts');
             if (!response.ok) throw new Error('Network error');
             this.debts = await response.json();
+            this.sortDebts();
             this.renderDebts();
             this.renderStats();
         } catch (error) {
@@ -40,6 +43,73 @@ class DebtTracker {
             searchInput.addEventListener('input', (e) => {
                 this.searchDebts(e.target.value);
             });
+        }
+    }
+
+    setupFilterButtons() {
+        const statsContainer = document.getElementById('statsContainer');
+        if (!statsContainer) return;
+
+        // Добавляем обработчики клика на статистику
+        statsContainer.addEventListener('click', (e) => {
+            const statItem = e.target.closest('.stat-item');
+            if (!statItem) return;
+
+            const label = statItem.querySelector('.stat-label').textContent;
+            
+            if (label === 'Активных') {
+                this.filterDebts('active');
+            } else if (label === 'Всего долг' || label === 'Осталось') {
+                this.filterDebts('all');
+            } else if (label === 'Оплачено') {
+                this.filterDebts('paid');
+            }
+        });
+    }
+
+    filterDebts(filterType) {
+        this.currentFilter = filterType;
+        
+        // Обновляем активную кнопку фильтра
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        const activeBtn = document.querySelector(`.filter-btn[data-filter="${filterType}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+
+        this.renderDebts();
+    }
+
+    sortDebts() {
+        // Сначала активные долги (остаток > 0), потом оплаченные
+        this.debts.sort((a, b) => {
+            const aRemaining = a.totalAmount - a.totalPaid;
+            const bRemaining = b.totalAmount - b.totalPaid;
+            
+            // Активные долги сначала
+            if (aRemaining > 0 && bRemaining <= 0) return -1;
+            if (aRemaining <= 0 && bRemaining > 0) return 1;
+            
+            // Сортировка по убыванию остатка для активных долгов
+            if (aRemaining > 0 && bRemaining > 0) {
+                return bRemaining - aRemaining;
+            }
+            
+            // Сортировка по имени для оплаченных
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    getFilteredDebts() {
+        switch (this.currentFilter) {
+            case 'active':
+                return this.debts.filter(debtor => debtor.totalAmount > debtor.totalPaid);
+            case 'paid':
+                return this.debts.filter(debtor => debtor.totalAmount <= debtor.totalPaid);
+            default:
+                return this.debts;
         }
     }
 
@@ -80,6 +150,8 @@ class DebtTracker {
                 await this.loadDebts();
                 this.clearForm();
                 this.showSuccess('Долг успешно добавлен!');
+                // После добавления показываем все долги
+                this.filterDebts('all');
             } else {
                 this.showError(result.error || 'Ошибка при добавлении');
             }
@@ -276,27 +348,58 @@ class DebtTracker {
         const totalPaid = this.debts.reduce((s, d) => s + d.totalPaid, 0);
         const totalRemaining = totalDebt - totalPaid;
         const activeDebts = this.debts.filter(d => d.totalAmount > d.totalPaid).length;
+        const paidDebts = this.debts.filter(d => d.totalAmount <= d.totalPaid).length;
 
         container.innerHTML = `
             <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value">${this.formatNumber(totalDebt)}₸</div><div class="stat-label">Всего долг</div></div>
-                <div class="stat-item"><div class="stat-value">${this.formatNumber(totalRemaining)}₸</div><div class="stat-label">Осталось</div></div>
-                <div class="stat-item"><div class="stat-value">${this.formatNumber(totalPaid)}₸</div><div class="stat-label">Оплачено</div></div>
-                <div class="stat-item"><div class="stat-value">${activeDebts}</div><div class="stat-label">Активных</div></div>
+                <div class="stat-item clickable">
+                    <div class="stat-value">${this.formatNumber(totalDebt)}₸</div>
+                    <div class="stat-label">Всего долг</div>
+                </div>
+                <div class="stat-item clickable">
+                    <div class="stat-value">${this.formatNumber(totalRemaining)}₸</div>
+                    <div class="stat-label">Осталось</div>
+                </div>
+                <div class="stat-item clickable">
+                    <div class="stat-value">${this.formatNumber(totalPaid)}₸</div>
+                    <div class="stat-label">Оплачено</div>
+                </div>
+                <div class="stat-item clickable">
+                    <div class="stat-value">${activeDebts}</div>
+                    <div class="stat-label">Активных</div>
+                </div>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all" onclick="debtTracker.filterDebts('all')">Все</button>
+                <button class="filter-btn" data-filter="active" onclick="debtTracker.filterDebts('active')">Активные (${activeDebts})</button>
+                <button class="filter-btn" data-filter="paid" onclick="debtTracker.filterDebts('paid')">Оплаченные (${paidDebts})</button>
             </div>
         `;
     }
 
-    renderDebts(debtsToRender = this.debts) {
+    renderDebts(debtsToRender = null) {
         const container = document.getElementById('debtsContainer');
         if (!container) return;
 
-        if (debtsToRender.length === 0) {
-            container.innerHTML = '<div class="empty-state"><h3>📝 Нет долгов</h3><p>Добавьте первый долг</p></div>';
+        const debts = debtsToRender || this.getFilteredDebts();
+
+        if (debts.length === 0) {
+            let message = '';
+            switch (this.currentFilter) {
+                case 'active':
+                    message = '<div class="empty-state"><h3>✅ Все долги оплачены</h3><p>Нет активных долгов</p></div>';
+                    break;
+                case 'paid':
+                    message = '<div class="empty-state"><h3>📝 Нет оплаченных долгов</h3><p>Все долги активны</p></div>';
+                    break;
+                default:
+                    message = '<div class="empty-state"><h3>📝 Нет долгов</h3><p>Добавьте первый долг</p></div>';
+            }
+            container.innerHTML = message;
             return;
         }
 
-        container.innerHTML = debtsToRender.map(debtor => {
+        container.innerHTML = debts.map(debtor => {
             const remaining = debtor.totalAmount - debtor.totalPaid;
             const progress = debtor.totalAmount > 0 ? (debtor.totalPaid / debtor.totalAmount) * 100 : 100;
             const isPaid = remaining <= 0;

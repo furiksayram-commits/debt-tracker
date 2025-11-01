@@ -32,28 +32,33 @@
         </div>
 
         <div class="card">
-            <h2>📊 Статистика</h2>
-            <div id="statsContainer">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value">0₸</div>
-                        <div class="stat-label">Всего долг</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">0₸</div>
-                        <div class="stat-label">Осталось</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">0₸</div>
-                        <div class="stat-label">Оплачено</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value">0</div>
-                        <div class="stat-label">Активных</div>
-                    </div>
-                </div>
+    <h2>📊 Статистика</h2>
+    <div id="statsContainer">
+        <div class="stats-grid">
+            <div class="stat-item clickable">
+                <div class="stat-value">0₸</div>
+                <div class="stat-label">Всего долг</div>
+            </div>
+            <div class="stat-item clickable">
+                <div class="stat-value">0₸</div>
+                <div class="stat-label">Осталось</div>
+            </div>
+            <div class="stat-item clickable">
+                <div class="stat-value">0₸</div>
+                <div class="stat-label">Оплачено</div>
+            </div>
+            <div class="stat-item clickable">
+                <div class="stat-value">0</div>
+                <div class="stat-label">Активных</div>
             </div>
         </div>
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">Все</button>
+            <button class="filter-btn" data-filter="active">Активные (0)</button>
+            <button class="filter-btn" data-filter="paid">Оплаченные (0)</button>
+        </div>
+    </div>
+</div>
 
         <div class="card">
             <h2>🔍 Поиск</h2>
