@@ -465,7 +465,7 @@ class DebtTracker {
                     <div class="summary-grid">
                         <div class="summary-item"><div class="summary-label">Общий долг</div><div class="summary-value total-debt">${this.formatNumber(debtor.totalAmount)}₸</div></div>
                         <div class="summary-item"><div class="summary-label">Оплачено</div><div class="summary-value total-paid">${this.formatNumber(debtor.totalPaid)}₸</div></div>
-                        <div class="summary-item full-width"><div class="summary-label">Текущий баланс</div><div class="summary-value total-balance ${isOverpaidTotal ? 'overpaid' : ''}">${this.formatNumber(totalBalance)}₸ ${isOverpaidTotal ? '(переплата)' : ''}</div></div>
+                        <div class="summary-item full-width"><div class="summary-label">Текущий Долг</div><div class="summary-value total-balance ${isOverpaidTotal ? 'overpaid' : ''}">${this.formatNumber(totalBalance)}₸ ${isOverpaidTotal ? '(переплата)' : ''}</div></div>
                     </div>
                 </div>
                 <div class="history-section"><h4>История операций</h4><div class="history-list">${recordsHtml || '<div class="no-records">Нет записей</div>'}</div></div>
