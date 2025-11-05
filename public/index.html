@@ -17,26 +17,16 @@
             <h2>📝 Новый долг</h2>
             <form id="debtForm">
                 <div class="form-group">
-                    <input 
-                        type="text" 
-                        id="name" 
-                        placeholder="Имя должника" 
-                        required 
-                        autocomplete="name"
-                        name="name"
-                    >
+                    <input type="text" id="name" placeholder="Имя должника" required 
+                           autocomplete="name" class="contact-field">
                 </div>
                 <div class="form-group">
-                    <input 
-                        type="tel" 
-                        id="phone" 
-                        placeholder="Телефон (необязательно)" 
-                        autocomplete="tel"
-                        name="phone"
-                    >
+                    <input type="tel" id="phone" placeholder="Телефон (необязательно)" 
+                           autocomplete="tel" class="contact-field">
                 </div>
                 <div class="form-group">
-                    <input type="number" id="amount" placeholder="Сумма долга" step="1" min="1" required>
+                    <input type="number" id="amount" placeholder="Сумма долга" step="1" min="1" required
+                           inputmode="numeric" pattern="[0-9]*">
                 </div>
                 <div class="form-group">
                     <textarea id="comment" placeholder="Комментарий (необязательно)"></textarea>
