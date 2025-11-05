@@ -153,11 +153,11 @@ textarea {
 
 .debt-item {
     background: var(--surface);
-    padding: 6px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    border-left: 4px solid var(--primary);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 10px 12px; /* Еще меньше padding */
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary); /* Тонче бордер */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .debt-item.paid {
@@ -169,8 +169,8 @@ textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 15px;
-    margin-bottom: 10px;
+    gap: 10px;
+    margin-bottom: 6px;
 }
 
 .debt-main {
@@ -181,16 +181,16 @@ textarea {
 
 .debt-name {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     color: var(--text);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .debt-summary {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.9rem;
+    gap: 4px;
+    font-size: 0.8rem;
     flex-wrap: wrap;
 }
 
@@ -228,18 +228,18 @@ textarea {
 }
 
 .btn-icon {
-    padding: 8px 10px;
+    padding: 5px 7px;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
     transition: all 0.2s;
     background: #f8fafc;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
-    height: 36px;
+    min-width: 28px;
+    height: 28px;
 }
 
 .btn-pay:hover {
@@ -917,3 +917,29 @@ input, textarea, button {
     }
 }
 
+/* Предотвращение зума на iOS устройствах */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="number"],
+    input[type="search"],
+    textarea {
+        font-size: 16px;
+        line-height: 1.4;
+        min-height: 44px; /* Минимальная высота для удобного касания */
+    }
+    
+    /* Убедимся, что фокус не вызывает зум */
+    input:focus,
+    textarea:focus {
+        font-size: 16px !important;
+    }
+}
+
+/* Улучшение отзывчивости полей ввода */
+.form-group input,
+.form-group textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+}
