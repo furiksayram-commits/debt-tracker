@@ -13,7 +13,6 @@ class DebtTracker {
         await this.loadDebts();
         this.setupEventListeners();
         this.setupFilterButtons();
-        this.setupContactAutofill();
     }
 
     async loadDebts() {
@@ -45,215 +44,71 @@ class DebtTracker {
                 this.searchDebts(e.target.value);
                 this.toggleClearButton(searchInput);
             });
+            
+            // Добавляем крестик для поиска
             this.addClearButton(searchInput);
         }
 
+        // Автодополнение для поля имени
         const nameInput = document.getElementById('name');
         if (nameInput) {
             nameInput.addEventListener('input', (e) => {
                 this.handleNameInput(e.target.value);
                 this.toggleClearButton(nameInput);
-                this.handleContactSearch(e.target.value);
             });
             
             nameInput.addEventListener('focus', (e) => {
                 this.handleNameInput(e.target.value);
                 this.toggleClearButton(nameInput);
-                this.handleContactSearch(e.target.value);
             });
             
             nameInput.addEventListener('blur', () => {
                 setTimeout(() => {
                     this.hideSuggestions();
-                    this.hideContactSuggestions();
                 }, 200);
             });
             
+            // Добавляем крестик для имени
             this.addClearButton(nameInput);
         }
-
-        const phoneInput = document.getElementById('phone');
-        if (phoneInput) {
-            phoneInput.addEventListener('change', () => {
-                this.syncContactFields();
-            });
-            this.addClearButton(phoneInput);
-        }
     }
-
-    setupContactAutofill() {
-        const nameInput = document.getElementById('name');
-        const phoneInput = document.getElementById('phone');
-
-        if (nameInput && phoneInput) {
-            nameInput.addEventListener('change', () => {
-                this.syncContactFields();
-            });
-            
-            phoneInput.addEventListener('change', () => {
-                this.syncContactFields();
-            });
-        }
-    }
-
-    syncContactFields() {
-        const nameInput = document.getElementById('name');
-        const phoneInput = document.getElementById('phone');
-        
-        setTimeout(() => {
-            if (nameInput.value && !phoneInput.value) {
-                this.findContactByPhone(nameInput.value);
-            }
-            else if (phoneInput.value && !nameInput.value) {
-                this.findContactByName(phoneInput.value);
-            }
-        }, 100);
-    }
-
-    findContactByPhone(name) {
-        const normalizedName = name.toLowerCase().trim();
-        const existingDebtor = this.debts.find(debtor => 
-            debtor.name.toLowerCase().includes(normalizedName)
-        );
-        
-        if (existingDebtor && existingDebtor.phone) {
-            const phoneInput = document.getElementById('phone');
-            phoneInput.value = existingDebtor.phone;
-            this.showContactHint(`Найден контакт: ${existingDebtor.phone}`);
-        }
-    }
-
-    findContactByName(phone) {
-        const normalizedPhone = this.normalizePhone(phone);
-        const existingDebtor = this.debts.find(debtor => 
-            debtor.phone && this.normalizePhone(debtor.phone).includes(normalizedPhone)
-        );
-        
-        if (existingDebtor) {
-            const nameInput = document.getElementById('name');
-            nameInput.value = existingDebtor.name;
-            this.showContactHint(`Найден контакт: ${existingDebtor.name}`);
-        }
-    }
-
-    normalizePhone(phone) {
-        return phone.replace(/[^\d+]/g, '');
-    }
-
-    handleContactSearch(query) {
-        if (query.length < 2) {
-            this.hideContactSuggestions();
-            return;
-        }
-
-        const matches = this.findContactMatches(query);
-        this.showContactSuggestions(matches);
-    }
-
-    findContactMatches(query) {
-        const lowerQuery = query.toLowerCase();
-        return this.debts
-            .filter(debtor => 
-                debtor.name.toLowerCase().includes(lowerQuery) ||
-                (debtor.phone && debtor.phone.includes(query))
-            )
-            .slice(0, 5);
-    }
-
-    showContactSuggestions(contacts) {
-        let container = document.getElementById('contactSuggestions');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'contactSuggestions';
-            container.className = 'contact-suggestions';
-            document.getElementById('name').parentNode.appendChild(container);
-        }
-
-        if (contacts.length === 0) {
-            this.hideContactSuggestions();
-            return;
-        }
-
-        const suggestionsHtml = contacts.map(contact => `
-            <div class="contact-suggestion" data-name="${contact.name}" data-phone="${contact.phone || ''}">
-                <div class="contact-info">
-                    <div class="contact-name">${this.escapeHtml(contact.name)}</div>
-                    ${contact.phone ? `<div class="contact-phone">${this.escapeHtml(contact.phone)}</div>` : ''}
-                </div>
-                <div class="contact-balance">
-                    ${this.formatNumber(contact.totalAmount - contact.totalPaid)}₸
-                </div>
-            </div>
-        `).join('');
-
-        container.innerHTML = suggestionsHtml;
-        container.style.display = 'block';
-
-        container.querySelectorAll('.contact-suggestion').forEach(item => {
-            item.addEventListener('click', () => {
-                const name = item.getAttribute('data-name');
-                const phone = item.getAttribute('data-phone');
-                
-                document.getElementById('name').value = name;
-                if (phone) {
-                    document.getElementById('phone').value = phone;
-                }
-                
-                this.hideContactSuggestions();
-                this.showExistingDebtorInfo(name);
-            });
-        });
-    }
-
-    hideContactSuggestions() {
-        const container = document.getElementById('contactSuggestions');
-        if (container) {
-            container.style.display = 'none';
-        }
-    }
-
-    showContactHint(message) {
-        const hint = document.createElement('div');
-        hint.className = 'contact-hint';
-        hint.textContent = message;
-        
-        const phoneInput = document.getElementById('phone');
-        phoneInput.parentNode.appendChild(hint);
-        
-        setTimeout(() => {
-            if (hint.parentNode) {
-                hint.parentNode.removeChild(hint);
-            }
-        }, 3000);
-    }
-
+    // Метод для добавления крестика очистки
     addClearButton(inputElement) {
+        // Создаем кнопку очистки
         const clearButton = document.createElement('button');
         clearButton.type = 'button';
         clearButton.className = 'clear-input';
         clearButton.innerHTML = '×';
         clearButton.title = 'Очистить поле';
         
+        // Добавляем обработчик клика
         clearButton.addEventListener('click', () => {
             inputElement.value = '';
             inputElement.focus();
             this.toggleClearButton(inputElement);
             
+            // Если это поле поиска, сбрасываем поиск
             if (inputElement.id === 'search') {
                 this.searchDebts('');
             }
             
+            // Если это поле имени, скрываем подсказки
             if (inputElement.id === 'name') {
                 this.hideSuggestions();
-                this.hideContactSuggestions();
             }
         });
         
+        // Добавляем класс для дополнительного отступа
         inputElement.classList.add('has-clear-button');
+        
+        // Вставляем кнопку после поля ввода
         inputElement.parentNode.appendChild(clearButton);
+        
+        // Инициализируем состояние кнопки
         this.toggleClearButton(inputElement);
     }
 
+    // Метод для показа/скрытия крестика
     toggleClearButton(inputElement) {
         const clearButton = inputElement.parentNode.querySelector('.clear-input');
         if (clearButton) {
@@ -354,7 +209,7 @@ class DebtTracker {
     showInfo(message) {
         const info = document.createElement('div');
         info.className = 'notification info';
-        info.style.background = '#3b82f6';
+        info.style.cssText = `position:fixed;top:20px;right:20px;left:20px;padding:15px;border-radius:8px;color:white;font-weight:600;z-index:1001;text-align:center;background:#3b82f6;box-shadow:0 4px 12px rgba(0,0,0,0.2);`;
         info.textContent = message;
         document.body.appendChild(info);
         setTimeout(() => info.remove(), 4000);
@@ -430,7 +285,6 @@ class DebtTracker {
 
     async addDebt() {
         const nameInput = document.getElementById('name');
-        const phoneInput = document.getElementById('phone');
         const amountInput = document.getElementById('amount');
         const commentInput = document.getElementById('comment');
 
@@ -440,7 +294,6 @@ class DebtTracker {
         }
 
         const name = nameInput.value.trim();
-        const phone = phoneInput.value.trim();
         const amount = amountInput.value;
         const comment = commentInput.value.trim();
 
@@ -450,7 +303,6 @@ class DebtTracker {
         }
 
         this.hideSuggestions();
-        this.hideContactSuggestions();
 
         const btn = document.querySelector('#debtForm button');
         const originalText = btn.innerHTML;
@@ -461,7 +313,7 @@ class DebtTracker {
             const response = await fetch('/api/debts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone, amount, comment })
+                body: JSON.stringify({ name, amount, comment })
             });
 
             const result = await response.json();
@@ -487,27 +339,10 @@ class DebtTracker {
         const form = document.getElementById('debtForm');
         if (form) {
             form.reset();
+            // Скрываем крестики после очистки формы
             const inputs = form.querySelectorAll('input');
             inputs.forEach(input => this.toggleClearButton(input));
         }
-    }
-
-    sendWhatsAppMessage(debtorId) {
-        const debtor = this.debts.find(d => d.id === debtorId);
-        if (!debtor) return;
-
-        const remaining = debtor.totalAmount - debtor.totalPaid;
-        
-        if (!debtor.phone) {
-            this.showError('У должника не указан номер телефона');
-            return;
-        }
-
-        const phoneNumber = debtor.phone.replace(/[^\d+]/g, '');
-        const message = `Здравствуйте! Напоминаю о долге: ${this.formatNumber(remaining)}₸`;
-        
-        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
     }
 
     async addMoreDebt(debtorId) {
@@ -626,15 +461,6 @@ class DebtTracker {
                     <h3>📋 ${this.escapeHtml(debtor.name)}</h3>
                     <button class="btn-close" onclick="this.closest('.debt-details-dialog').remove()">✕</button>
                 </div>
-                ${debtor.phone ? `
-                    <div class="debtor-phone-section">
-                        <div class="phone-info">
-                            <span class="phone-label">📱 Телефон:</span>
-                            <span class="phone-number">${this.escapeHtml(debtor.phone)}</span>
-                            ${totalBalance > 0 ? `<button class="btn-whatsapp-small" onclick="debtTracker.sendWhatsAppMessage('${debtor.id}')">Написать в WhatsApp</button>` : ''}
-                        </div>
-                    </div>
-                ` : ''}
                 <div class="debt-summary-card">
                     <div class="summary-grid">
                         <div class="summary-item"><div class="summary-label">Общий долг</div><div class="summary-value total-debt">${this.formatNumber(debtor.totalAmount)}₸</div></div>
@@ -758,7 +584,6 @@ class DebtTracker {
                     <div class="debt-row">
                         <div class="debt-main" onclick="debtTracker.showDebtDetails(${JSON.stringify(debtor).replace(/\"/g, '&quot;')})">
                             <div class="debt-name">${this.escapeHtml(debtor.name)}</div>
-                            ${debtor.phone ? `<div class="debt-phone">📱 ${this.escapeHtml(debtor.phone)}</div>` : ''}
                             <div class="debt-summary">
                                 <span class="debt-total">${this.formatNumber(debtor.totalAmount)}₸</span>
                                 <span class="debt-separator">→</span>
@@ -769,10 +594,9 @@ class DebtTracker {
                             </div>
                         </div>
                         <div class="debt-actions-compact">
-                            ${debtor.phone && remaining > 0 ? `<button class="btn-icon btn-whatsapp" onclick="debtTracker.sendWhatsAppMessage('${debtor.id}')" title="Написать в WhatsApp">💬</button>` : ''}
-                            <button class="btn-icon btn-pay" onclick="debtTracker.showPaymentDialog('${debtor.id}')" title="Внести платеж">💵</button>
-                            <button class="btn-icon btn-add" onclick="debtTracker.addMoreDebt('${debtor.id}')" title="Добавить долг">➕</button>
-                            <button class="btn-icon btn-delete" onclick="debtTracker.deleteDebt('${debtor.id}')" title="Удалить">🗑️</button>
+                            <button class="btn-icon btn-pay" onclick="debtTracker.showPaymentDialog('${debtor.id}')">💵</button>
+                            <button class="btn-icon btn-add" onclick="debtTracker.addMoreDebt('${debtor.id}')">➕</button>
+                            <button class="btn-icon btn-delete" onclick="debtTracker.deleteDebt('${debtor.id}')">🗑️</button>
                         </div>
                     </div>
                     <div class="progress-section"><div class="progress-bar"><div class="progress" style="width: ${Math.min(progress, 100)}%"></div></div></div>
@@ -788,7 +612,7 @@ class DebtTracker {
         document.querySelectorAll('.notification').forEach(n => n.remove());
         const n = document.createElement('div');
         n.className = 'notification';
-        n.style.background = type === 'error' ? '#ef4444' : '#10b981';
+        n.style.cssText = `position:fixed;top:20px;right:20px;left:20px;padding:15px;border-radius:8px;color:white;font-weight:600;z-index:1001;text-align:center;${type==='error'?'background:#ef4444;':'background:#10b981;'}box-shadow:0 4px 12px rgba(0,0,0,0.2);`;
         n.textContent = message;
         document.body.appendChild(n);
         setTimeout(() => n.remove(), 3000);
