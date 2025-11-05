@@ -50,9 +50,9 @@ header p {
 
 .card {
     background: var(--surface);
-    padding: 20px;
+    padding: 15px;
     border-radius: 12px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
@@ -66,7 +66,7 @@ header p {
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 input, textarea {
@@ -299,7 +299,7 @@ textarea {
 
 .stat-item {
     text-align: center;
-    padding: 15px;
+    padding: 10px;
     background: #f8fafc;
     border-radius: 8px;
 }
@@ -728,7 +728,7 @@ textarea {
 /* Стили для полей с крестиком */
 .form-group {
     position: relative;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .clear-input {
@@ -917,29 +917,4 @@ input, textarea, button {
     }
 }
 
-/* Предотвращение зума на iOS устройствах */
-@media screen and (max-width: 768px) {
-    input[type="text"],
-    input[type="number"],
-    input[type="search"],
-    textarea {
-        font-size: 16px;
-        line-height: 1.4;
-        min-height: 44px; /* Минимальная высота для удобного касания */
-    }
-    
-    /* Убедимся, что фокус не вызывает зум */
-    input:focus,
-    textarea:focus {
-        font-size: 16px !important;
-    }
-}
 
-/* Улучшение отзывчивости полей ввода */
-.form-group input,
-.form-group textarea {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border-radius: 8px;
-}
