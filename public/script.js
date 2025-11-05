@@ -412,57 +412,194 @@ class DebtTracker {
     }
 
     async addMoreDebt(debtorId) {
-        const debtor = this.debts.find(d => d.id === debtorId);
-        if (!debtor) return;
+    const debtor = this.debts.find(d => d.id === debtorId);
+    if (!debtor) return;
 
-        const remaining = debtor.totalAmount - debtor.totalPaid;
-        const amount = prompt(
-            `Добавить долг для ${debtor.name}:\nТекущий остаток: ${this.formatNumber(remaining)}₸\nВведите сумму:`,
-            "0"
-        );
+    const remaining = debtor.totalAmount - debtor.totalPaid;
+    
+    // Создаем кастомный диалог вместо стандартного prompt
+    const amount = await this.showNumberInputDialog(
+        `Добавить долг для ${debtor.name}`,
+        `Текущий остаток: ${this.formatNumber(remaining)}₸\nВведите сумму:`,
+        "0"
+    );
 
-        if (!amount || amount <= 0) return;
+    if (!amount || amount <= 0) return;
 
-        const comment = prompt('Комментарий к долгу (необязательно):', '');
-        if (comment === null) return;
+    const comment = prompt('Комментарий к долгу (необязательно):', '');
+    if (comment === null) return;
 
-        try {
-            const response = await fetch(`/api/debts/${debtorId}/add-debt`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: parseFloat(amount), comment: comment || '' })
-            });
+    try {
+        const response = await fetch(`/api/debts/${debtorId}/add-debt`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount: parseFloat(amount), comment: comment || '' })
+        });
 
-            const result = await response.json();
+        const result = await response.json();
 
-            if (response.ok) {
-                await this.loadDebts();
-                this.showSuccess(`Долг добавлен для ${result.name}!`);
-            } else {
-                this.showError(result.error || 'Ошибка');
-            }
-        } catch (error) {
-            this.showError('Ошибка сети');
+        if (response.ok) {
+            await this.loadDebts();
+            this.showSuccess(`Долг добавлен для ${result.name}!`);
+        } else {
+            this.showError(result.error || 'Ошибка');
         }
+    } catch (error) {
+        this.showError('Ошибка сети');
     }
+}
+
+    // Новый метод для показа диалога с числовым вводом
+showNumberInputDialog(title, message, defaultValue = '') {
+    return new Promise((resolve) => {
+        // Создаем модальное окно
+        const modal = document.createElement('div');
+        modal.className = 'number-input-modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+
+        modal.innerHTML = `
+            <div class="number-input-dialog" style="
+                background: white;
+                padding: 20px;
+                border-radius: 12px;
+                width: 90%;
+                max-width: 400px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            ">
+                <h3 style="margin: 0 0 10px 0; color: #1f2937;">${title}</h3>
+                <p style="margin: 0 0 15px 0; color: #6b7280; font-size: 14px; line-height: 1.4;">${message}</p>
+                <input 
+                    type="number" 
+                    inputmode="numeric" 
+                    pattern="[0-9]*"
+                    class="number-input" 
+                    value="${defaultValue}"
+                    style="
+                        width: 100%;
+                        padding: 12px;
+                        border: 2px solid #e5e7eb;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        text-align: center;
+                        margin-bottom: 15px;
+                    "
+                    autofocus
+                >
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button class="btn-cancel" style="
+                        padding: 10px 20px;
+                        border: 1px solid #d1d5db;
+                        background: white;
+                        border-radius: 6px;
+                        color: #374151;
+                    ">Отмена</button>
+                    <button class="btn-ok" style="
+                        padding: 10px 20px;
+                        background: #3b82f6;
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                    ">OK</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const input = modal.querySelector('.number-input');
+        const btnCancel = modal.querySelector('.btn-cancel');
+        const btnOk = modal.querySelector('.btn-ok');
+
+        // Фокусируем и выделяем текст в поле ввода
+        input.focus();
+        input.select();
+
+        // Обработчики событий
+        const cleanup = () => {
+            modal.remove();
+        };
+
+        btnCancel.addEventListener('click', () => {
+            resolve(null);
+            cleanup();
+        });
+
+        btnOk.addEventListener('click', () => {
+            const value = input.value.trim();
+            resolve(value || null);
+            cleanup();
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                resolve(null);
+                cleanup();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const value = input.value.trim();
+                resolve(value || null);
+                cleanup();
+            } else if (e.key === 'Escape') {
+                resolve(null);
+                cleanup();
+            }
+        });
+
+        // Запрещаем ввод нечисловых символов
+        input.addEventListener('input', (e) => {
+            // Удаляем все нечисловые символы, кроме точки для десятичных
+            e.target.value = e.target.value.replace(/[^\d.]/g, '');
+            
+            // Удаляем лишние точки
+            const parts = e.target.value.split('.');
+            if (parts.length > 2) {
+                e.target.value = parts[0] + '.' + parts.slice(1).join('');
+            }
+        });
+
+        // Предотвращаем ввод нечисловых символов через вставку
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = e.clipboardData.getData('text');
+            const numbersOnly = text.replace(/[^\d.]/g, '');
+            document.execCommand('insertText', false, numbersOnly);
+        });
+    });
+}
 
     showPaymentDialog(debtorId) {
-        const debtor = this.debts.find(d => d.id === debtorId);
-        if (!debtor) return;
+    const debtor = this.debts.find(d => d.id === debtorId);
+    if (!debtor) return;
 
-        const remaining = debtor.totalAmount - debtor.totalPaid;
-        const amount = prompt(
-            `Внести платеж от ${debtor.name}:\nТекущий остаток: ${this.formatNumber(remaining)}₸\nВведите сумму платежа:`,
-            this.formatNumber(Math.max(0, remaining))
-        );
-
+    const remaining = debtor.totalAmount - debtor.totalPaid;
+    
+    this.showNumberInputDialog(
+        `Внести платеж от ${debtor.name}`,
+        `Текущий остаток: ${this.formatNumber(remaining)}₸\nВведите сумму платежа:`,
+        this.formatNumber(Math.max(0, remaining))
+    ).then(amount => {
         if (!amount || amount <= 0) return;
 
         const comment = prompt('Комментарий к платежу (необязательно):', '');
         if (comment === null) return;
 
         this.processPayment(debtorId, amount, comment);
-    }
+    });
+}
 
     async processPayment(debtorId, amount, comment) {
         try {
