@@ -917,4 +917,29 @@ input, textarea, button {
     }
 }
 
+/* Предотвращение зума на iOS устройствах */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="number"],
+    input[type="search"],
+    textarea {
+        font-size: 16px;
+        line-height: 1.4;
+        min-height: 44px; /* Минимальная высота для удобного касания */
+    }
+    
+    /* Убедимся, что фокус не вызывает зум */
+    input:focus,
+    textarea:focus {
+        font-size: 16px !important;
+    }
+}
 
+/* Улучшение отзывчивости полей ввода */
+.form-group input,
+.form-group textarea {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+}
