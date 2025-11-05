@@ -38,13 +38,13 @@ header {
 }
 
 header h1 {
-    font-size: 2rem;
+    font-size: 12px;
     font-weight: 700;
     margin-bottom: 8px;
 }
 
 header p {
-    font-size: 1rem;
+    font-size: 10px;
     opacity: 0.9;
 }
 
@@ -59,7 +59,7 @@ header p {
 .card h2 {
     color: var(--primary);
     margin-bottom: 15px;
-    font-size: 1.3rem;
+    font-size: 10px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -74,7 +74,7 @@ input, textarea {
     padding: 12px 15px;
     border: 2px solid var(--border);
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 10px;
     background: var(--surface);
     transition: border-color 0.3s;
 }
@@ -94,7 +94,7 @@ textarea {
     padding: 12px 20px;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 10px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
@@ -147,7 +147,7 @@ textarea {
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 16px;
+    font-size: 10px;
     z-index: 1;
 }
 
@@ -181,7 +181,7 @@ textarea {
 
 .debt-name {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 10px;
     color: var(--text);
     margin-bottom: 5px;
 }
@@ -190,7 +190,7 @@ textarea {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.9rem;
+    font-size: 10px;
     flex-wrap: wrap;
 }
 
@@ -232,7 +232,7 @@ textarea {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 10px;
     transition: all 0.2s;
     background: #f8fafc;
     display: flex;
@@ -286,7 +286,7 @@ textarea {
 }
 
 .empty-state h3 {
-    font-size: 1.2rem;
+    font-size: 10px;
     margin-bottom: 10px;
     color: var(--text);
 }
@@ -305,14 +305,14 @@ textarea {
 }
 
 .stat-value {
-    font-size: 1.4rem;
+    font-size: 10px;
     font-weight: 700;
     color: var(--primary);
     margin-bottom: 5px;
 }
 
 .stat-label {
-    font-size: 0.9rem;
+    font-size: 10px;
     color: var(--text-light);
 }
 
@@ -354,13 +354,13 @@ textarea {
 .debt-details-header h3 {
     margin: 0;
     color: #333;
-    font-size: 1.3rem;
+    font-size: 10px;
 }
 
 .btn-close {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 10px;
     cursor: pointer;
     padding: 5px 10px;
     border-radius: 4px;
@@ -397,14 +397,14 @@ textarea {
 }
 
 .summary-label {
-    font-size: 0.9rem;
+    font-size: 10px;
     color: #666;
     margin-bottom: 5px;
 }
 
 .summary-value {
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 10px;
 }
 
 .total-debt {
@@ -417,7 +417,7 @@ textarea {
 
 .total-balance {
     color: #333;
-    font-size: 1.3rem !important;
+    font-size: 10px !important;
 }
 
 .total-balance.overpaid {
@@ -457,7 +457,7 @@ textarea {
 
 .record-type {
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: 10px;
     margin-bottom: 3px;
 }
 
@@ -470,7 +470,7 @@ textarea {
 }
 
 .record-date {
-    font-size: 0.85rem;
+    font-size: 10px;
     color: #666;
 }
 
@@ -481,7 +481,7 @@ textarea {
 
 .record-sum {
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: 10px;
     margin-bottom: 3px;
 }
 
@@ -523,7 +523,7 @@ textarea {
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 12px;
     transition: all 0.3s;
 }
 
@@ -600,7 +600,7 @@ textarea {
     background: white;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 10px;
     transition: all 0.2s ease;
     color: #6c757d;
 }
@@ -651,7 +651,7 @@ textarea {
 }
 
 .current-filter {
-    font-size: 14px;
+    font-size: 10px;
     color: #007bff;
     font-weight: 500;
 }
@@ -696,7 +696,7 @@ textarea {
 }
 
 .suggestion-status {
-    font-size: 12px;
+    font-size: 10px;
     color: #6b7280;
     font-weight: 400;
 }
@@ -739,7 +739,7 @@ textarea {
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 1.2rem;
+    font-size: 10px;
     cursor: pointer;
     padding: 5px;
     border-radius: 50%;
@@ -783,11 +783,11 @@ input.has-clear-button {
 #search {
     padding-right: 50px;
     background: var(--bg-secondary) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2364748b"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat 15px center;
-    background-size: 20px;
+    background-size: 10px;
     padding-left: 45px;
 }
 
 #search:focus {
     background: var(--bg-hover) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2300d4ff"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat 15px center;
-    background-size: 20px;
+    background-size: 10px;
 }
