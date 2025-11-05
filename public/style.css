@@ -897,3 +897,80 @@ input[inputmode="numeric"] {
 .form-group textarea:focus {
     font-size: 16px !important;
 }
+
+/* Специальный стиль для крестика, который очищает всю форму */
+.clear-all {
+    background: var(--warning) !important;
+}
+
+.clear-all:hover {
+    background: #d97706 !important;
+}
+
+.clear-all::after {
+    content: ' все';
+    font-size: 0.7rem;
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--warning);
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* Стили для кнопок удаления записей */
+.btn-delete-record {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+}
+
+.btn-delete-record:hover {
+    opacity: 1;
+    background: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+.history-record {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background-color 0.2s ease;
+}
+
+.history-record:hover {
+    background-color: #f9fafb;
+}
+
+.record-amounts {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.record-sum.debt {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.record-sum.payment {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.no-records {
+    text-align: center;
+    color: #6b7280;
+    padding: 20px;
+    font-style: italic;
+}

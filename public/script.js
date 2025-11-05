@@ -67,11 +67,13 @@ class DebtTracker {
                 }, 200);
             });
             
-            this.addClearButton(nameInput);
+            // Добавляем специальный крестик для имени, который очищает всю форму
+            this.addNameClearButton(nameInput);
         }
 
         const phoneInput = document.getElementById('phone');
         if (phoneInput) {
+            // Для телефона обычный крестик, очищает только телефон
             this.addClearButton(phoneInput);
         }
 
@@ -86,6 +88,63 @@ class DebtTracker {
                 this.hideContactSuggestions();
             }
         });
+    }
+
+    // Специальный метод для крестика имени, который очищает всю форму
+    addNameClearButton(inputElement) {
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.className = 'clear-input clear-all';
+        clearButton.innerHTML = '×';
+        clearButton.title = 'Очистить всю форму';
+        
+        clearButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Очищаем все поля формы
+            this.clearForm();
+            inputElement.focus();
+            this.toggleClearButton(inputElement);
+            this.hideContactSuggestions();
+        });
+        
+        inputElement.classList.add('has-clear-button');
+        inputElement.parentNode.appendChild(clearButton);
+        this.toggleClearButton(inputElement);
+    }
+
+    // Обычный метод для крестиков, которые очищают только свое поле
+    addClearButton(inputElement) {
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.className = 'clear-input';
+        clearButton.innerHTML = '×';
+        clearButton.title = 'Очистить поле';
+        
+        clearButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            inputElement.value = '';
+            inputElement.focus();
+            this.toggleClearButton(inputElement);
+            
+            if (inputElement.id === 'search') {
+                this.searchDebts('');
+            }
+        });
+        
+        inputElement.classList.add('has-clear-button');
+        inputElement.parentNode.appendChild(clearButton);
+        this.toggleClearButton(inputElement);
+    }
+
+    toggleClearButton(inputElement) {
+        const clearButton = inputElement.parentNode.querySelector('.clear-input');
+        if (clearButton) {
+            if (inputElement.value.length > 0) {
+                clearButton.classList.add('visible');
+            } else {
+                clearButton.classList.remove('visible');
+            }
+        }
     }
 
     handleNameInput(value) {
@@ -162,44 +221,6 @@ class DebtTracker {
         const container = document.getElementById('contactSuggestions');
         if (container) {
             container.style.display = 'none';
-        }
-    }
-
-    addClearButton(inputElement) {
-        const clearButton = document.createElement('button');
-        clearButton.type = 'button';
-        clearButton.className = 'clear-input';
-        clearButton.innerHTML = '×';
-        clearButton.title = 'Очистить поле';
-        
-        clearButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            inputElement.value = '';
-            inputElement.focus();
-            this.toggleClearButton(inputElement);
-            
-            if (inputElement.id === 'search') {
-                this.searchDebts('');
-            }
-            
-            if (inputElement.id === 'name') {
-                this.hideContactSuggestions();
-            }
-        });
-        
-        inputElement.classList.add('has-clear-button');
-        inputElement.parentNode.appendChild(clearButton);
-        this.toggleClearButton(inputElement);
-    }
-
-    toggleClearButton(inputElement) {
-        const clearButton = inputElement.parentNode.querySelector('.clear-input');
-        if (clearButton) {
-            if (inputElement.value.length > 0) {
-                clearButton.classList.add('visible');
-            } else {
-                clearButton.classList.remove('visible');
-            }
         }
     }
 
@@ -351,6 +372,7 @@ class DebtTracker {
         const form = document.getElementById('debtForm');
         if (form) {
             form.reset();
+            // Обновляем состояние всех крестиков
             const inputs = form.querySelectorAll('input');
             inputs.forEach(input => this.toggleClearButton(input));
         }
@@ -368,7 +390,8 @@ class DebtTracker {
         }
 
         const phoneNumber = debtor.phone.replace(/[^\d+]/g, '');
-        const message = `Здравствуйте! Напоминаю о долге: ${this.formatNumber(remaining)}₸`;
+        const message = `Ассалому Алейкум! ${debtor.name}  
+        Остаток долга: *${this.formatNumber(remaining)}₸*`;
         
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
@@ -461,103 +484,209 @@ class DebtTracker {
         }
     }
 
-    showDebtDetails(debtor) {
-        const existingDialog = document.querySelector('.debt-details-dialog');
-        if (existingDialog) existingDialog.remove();
+    // Обновленный метод showDebtDetails с кнопками удаления
+showDebtDetails(debtor) {
+    const existingDialog = document.querySelector('.debt-details-dialog');
+    if (existingDialog) existingDialog.remove();
 
-        const dialog = document.createElement('div');
-        dialog.className = 'debt-details-dialog';
+    const dialog = document.createElement('div');
+    dialog.className = 'debt-details-dialog';
 
-        const sortedRecords = [...debtor.debts].sort((a, b) => new Date(b.date) - new Date(a.date));
-        let runningBalance = 0;
+    const sortedRecords = [...debtor.debts].sort((a, b) => new Date(b.date) - new Date(a.date));
+    let runningBalance = 0;
 
-        const recordsHtml = sortedRecords.map(record => {
-            runningBalance += record.type === 'debt' ? record.amount : -record.amount;
-            const isOverpaid = runningBalance < 0;
-            return `
-                <div class="history-record">
-                    <div class="record-info">
-                        <div class="record-type ${record.type}">
-                            ${record.type === 'debt' ? '📝 Долг' : '💵 Платеж'}
-                        </div>
-                        <div class="record-date">
-                            ${new Date(record.date).toLocaleDateString('ru-RU')}
-                            ${record.comment ? ` • ${this.escapeHtml(record.comment)}` : ''}
-                        </div>
+    const recordsHtml = sortedRecords.map(record => {
+        runningBalance += record.type === 'debt' ? record.amount : -record.amount;
+        const isOverpaid = runningBalance < 0;
+        
+        return `
+            <div class="history-record">
+                <div class="record-info">
+                    <div class="record-type ${record.type}">
+                        ${record.type === 'debt' ? '📝 Долг' : '💵 Платеж'}
                     </div>
-                    <div class="record-amounts">
-                        <div class="record-sum ${record.type}">
-                            ${record.type === 'debt' ? '+' : '-'}${this.formatNumber(record.amount)}₸
-                        </div>
+                    <div class="record-date">
+                        ${new Date(record.date).toLocaleDateString('ru-RU')}
+                        ${record.comment ? ` • ${this.escapeHtml(record.comment)}` : ''}
                     </div>
                 </div>
-            `;
-        }).join('');
-
-        const totalBalance = debtor.totalAmount - debtor.totalPaid;
-        const isOverpaidTotal = totalBalance < 0;
-
-        dialog.innerHTML = `
-            <div class="debt-details-content">
-                <div class="debt-details-header">
-                    <h3>📋 ${this.escapeHtml(debtor.name)}</h3>
-                    <button class="btn-close" onclick="this.closest('.debt-details-dialog').remove()">✕</button>
-                </div>
-                ${debtor.phone ? `
-                    <div class="debtor-phone-section">
-                        <div class="phone-info-compact">
-                            <span class="phone-label">📱 Телефон:</span>
-                            <span class="phone-number">${this.escapeHtml(debtor.phone)}</span>
-                            <div class="phone-actions">
-                                <button class="btn-call" onclick="debtTracker.makePhoneCall('${debtor.id}')" title="Позвонить">📞</button>
-                                ${totalBalance > 0 ? `<button class="btn-whatsapp-compact" onclick="debtTracker.sendWhatsAppMessage('${debtor.id}')" title="Написать в WhatsApp">💬</button>` : ''}
-                            </div>
-                        </div>
+                <div class="record-amounts">
+                    <div class="record-sum ${record.type}">
+                        ${record.type === 'debt' ? '+' : '-'}${this.formatNumber(record.amount)}₸
                     </div>
-                ` : ''}
-                <div class="debt-summary-card">
-                    <div class="summary-grid">
-                        <div class="summary-item"><div class="summary-label">Общий долг</div><div class="summary-value total-debt">${this.formatNumber(debtor.totalAmount)}₸</div></div>
-                        <div class="summary-item"><div class="summary-label">Оплачено</div><div class="summary-value total-paid">${this.formatNumber(debtor.totalPaid)}₸</div></div>
-                        <div class="summary-item full-width"><div class="summary-label">Текущий Долг</div><div class="summary-value total-balance ${isOverpaidTotal ? 'overpaid' : ''}">${this.formatNumber(totalBalance)}₸ ${isOverpaidTotal ? '(переплата)' : ''}</div></div>
-                    </div>
-                </div>
-                <div class="history-section"><h4>История операций</h4><div class="history-list">${recordsHtml || '<div class="no-records">Нет записей</div>'}</div></div>
-                <div class="details-actions">
-                    <button class="btn-action btn-add-debt" onclick="debtTracker.addMoreDebt('${debtor.id}')">➕ Добавить долг</button>
-                    <button class="btn-action btn-add-payment" onclick="debtTracker.showPaymentDialog('${debtor.id}')">💵 Внести платеж</button>
+                    <button class="btn-delete-record" 
+                            onclick="debtTracker.deleteRecord('${debtor.id}', '${record.id}')"
+                            title="Удалить запись">
+                        🗑️
+                    </button>
                 </div>
             </div>
         `;
+    }).join('');
 
-        document.body.appendChild(dialog);
-        dialog.addEventListener('click', e => { if (e.target === dialog) dialog.remove(); });
-    }
+    const totalBalance = debtor.totalAmount - debtor.totalPaid;
+    const isOverpaidTotal = totalBalance < 0;
+
+    dialog.innerHTML = `
+        <div class="debt-details-content">
+            <div class="debt-details-header">
+                <h3>📋 ${this.escapeHtml(debtor.name)}</h3>
+                <button class="btn-close" onclick="this.closest('.debt-details-dialog').remove()">✕</button>
+            </div>
+            ${debtor.phone ? `
+                <div class="debtor-phone-section">
+                    <div class="phone-info-compact">
+                        <span class="phone-label">📱</span>
+                        <span class="phone-number">${this.escapeHtml(debtor.phone)}</span>
+                        <div class="phone-actions">
+                            <button class="btn-call" onclick="debtTracker.makePhoneCall('${debtor.id}')" title="Позвонить">📞</button>
+                            ${totalBalance > 0 ? `<button class="btn-whatsapp-compact" onclick="debtTracker.sendWhatsAppMessage('${debtor.id}')" title="Написать в WhatsApp">💬</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
+            <div class="debt-summary-card">
+                <div class="summary-grid">
+                    <div class="summary-item"><div class="summary-label">Общий долг</div><div class="summary-value total-debt">${this.formatNumber(debtor.totalAmount)}₸</div></div>
+                    <div class="summary-item"><div class="summary-label">Оплачено</div><div class="summary-value total-paid">${this.formatNumber(debtor.totalPaid)}₸</div></div>
+                    <div class="summary-item full-width"><div class="summary-label">Текущий Долг</div><div class="summary-value total-balance ${isOverpaidTotal ? 'overpaid' : ''}">${this.formatNumber(totalBalance)}₸ ${isOverpaidTotal ? '(переплата)' : ''}</div></div>
+                </div>
+            </div>
+            <div class="history-section">
+                <h4>История операций</h4>
+                <div class="history-list">${recordsHtml || '<div class="no-records">Нет записей</div>'}</div>
+            </div>
+            <div class="details-actions">
+                <button class="btn-action btn-add-debt" onclick="debtTracker.addMoreDebt('${debtor.id}')">➕ Добавить долг</button>
+                <button class="btn-action btn-add-payment" onclick="debtTracker.showPaymentDialog('${debtor.id}')">💵 Внести платеж</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+    dialog.addEventListener('click', e => { if (e.target === dialog) dialog.remove(); });
+}
 
     async deleteDebt(debtorId) {
-        const debtor = this.debts.find(d => d.id === debtorId);
-        if (!debtor) return;
+    const debtor = this.debts.find(d => d.id === debtorId);
+    if (!debtor) return;
 
-        const remaining = debtor.totalAmount - debtor.totalPaid;
-        let message = `Удалить должника \"${debtor.name}\"?\nОбщий долг: ${this.formatNumber(debtor.totalAmount)}₸\nОплачено: ${this.formatNumber(debtor.totalPaid)}₸\n`;
-        if (remaining > 0) message += `Неоплаченный остаток: ${this.formatNumber(remaining)}₸`;
-        else if (remaining < 0) message += `Переплата: ${this.formatNumber(Math.abs(remaining))}₸`;
-        else message += `Баланс: 0₸`;
+    const remaining = debtor.totalAmount - debtor.totalPaid;
+    
+    // Предлагаем выбор: очистить историю или удалить полностью
+    const action = confirm(
+        `Выберите действие для "${debtor.name}":\n\n` +
+        `Нажмите OK чтобы очистить историю долгов (сохранить контакт)\n` +
+        `Нажмите Отмена чтобы полностью удалить должника`
+    );
 
-        if (!confirm(message)) return;
+    if (action) {
+        // Очистить историю (сохранить должника)
+        await this.clearDebtHistory(debtorId);
+    } else {
+        // Полностью удалить (старое поведение)
+        await this.completelyDeleteDebtor(debtorId);
+    }
+}
 
-        try {
-            const response = await fetch(`/api/debts/${debtorId}`, { method: 'DELETE' });
-            const result = await response.json();
-            if (response.ok) {
-                await this.loadDebts();
-                this.showSuccess(`Должник \"${result.deletedDebtor}\" удален`);
-            } else this.showError('Ошибка удаления');
-        } catch {
-            this.showError('Ошибка сети');
+// Новый метод для очистки истории
+async clearDebtHistory(debtorId) {
+    const debtor = this.debts.find(d => d.id === debtorId);
+    if (!debtor) return;
+
+    try {
+        const response = await fetch(`/api/debts/${debtorId}/history`, { 
+            method: 'DELETE' 
+        });
+        const result = await response.json();
+        
+        if (response.ok) {
+            await this.loadDebts();
+            this.showSuccess(`История долгов для "${debtor.name}" очищена!`);
+            document.querySelectorAll('.debt-details-dialog').forEach(d => d.remove());
+        } else {
+            this.showError(result.error || 'Ошибка очистки истории');
         }
+    } catch (error) {
+        this.showError('Ошибка сети');
+    }
+}
+
+// Метод для полного удаления (старая логика)
+async completelyDeleteDebtor(debtorId) {
+    const debtor = this.debts.find(d => d.id === debtorId);
+    if (!debtor) return;
+
+    const remaining = debtor.totalAmount - debtor.totalPaid;
+    let message = `Полностью удалить должника \"${debtor.name}\"?\nЭто действие нельзя отменить!\n\nОбщий долг: ${this.formatNumber(debtor.totalAmount)}₸\nОплачено: ${this.formatNumber(debtor.totalPaid)}₸\n`;
+    if (remaining > 0) message += `Неоплаченный остаток: ${this.formatNumber(remaining)}₸`;
+    else if (remaining < 0) message += `Переплата: ${this.formatNumber(Math.abs(remaining))}₸`;
+    else message += `Баланс: 0₸`;
+
+    if (!confirm(message)) return;
+
+    try {
+        const response = await fetch(`/api/debts/${debtorId}`, { method: 'DELETE' });
+        const result = await response.json();
+        if (response.ok) {
+            await this.loadDebts();
+            this.showSuccess(`Должник \"${result.deletedDebtor}\" полностью удален`);
+        } else this.showError('Ошибка удаления');
+    } catch {
+        this.showError('Ошибка сети');
+    }
+}
+// Метод для удаления одной записи из истории
+async deleteRecord(debtorId, recordId) {
+    const debtor = this.debts.find(d => d.id === debtorId);
+    if (!debtor) return;
+
+    const record = debtor.debts?.find(r => r.id === recordId);
+    if (!record) return;
+
+    const recordType = record.type === 'debt' ? 'долг' : 'платеж';
+    const amount = this.formatNumber(record.amount);
+    const date = new Date(record.date).toLocaleDateString('ru-RU');
+    const comment = record.comment ? `\nКомментарий: "${record.comment}"` : '';
+
+    if (!confirm(
+        `Удалить эту запись?\n\n` +
+        `Тип: ${recordType}\n` +
+        `Сумма: ${amount}₸\n` +
+        `Дата: ${date}` +
+        `${comment}\n\n` +
+        `Это действие нельзя отменить!`
+    )) {
+        return;
     }
 
+    try {
+        const response = await fetch(`/api/debts/${debtorId}/records/${recordId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            await this.loadDebts();
+            this.showSuccess('Запись удалена');
+            
+            // Обновляем диалог деталей если он открыт
+            const dialog = document.querySelector('.debt-details-dialog');
+            if (dialog) {
+                const updatedDebtor = this.debts.find(d => d.id === debtorId);
+                if (updatedDebtor) {
+                    this.showDebtDetails(updatedDebtor);
+                }
+            }
+        } else {
+            this.showError(result.error || 'Ошибка удаления');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        this.showError('Ошибка сети');
+    }
+}
     async searchDebts(query) {
         try {
             const response = await fetch(`/api/debts/search?q=${encodeURIComponent(query)}`);

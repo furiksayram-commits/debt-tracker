@@ -260,6 +260,47 @@ app.get('/api/debts/search', async (req, res) => {
     }
 });
 
+// Новый эндпоинт для очистки истории долгов (сохраняет должника)
+app.delete('/api/debts/:id/history', async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        debts = await readDebts();
+        
+        const debtorIndex = debts.findIndex(d => d.id === id);
+        
+        if (debtorIndex === -1) {
+            return res.status(404).json({ error: 'Должник не найден' });
+        }
+        
+        // Сохраняем основные данные должника
+        const debtorData = {
+            id: debts[debtorIndex].id,
+            name: debts[debtorIndex].name,
+            phone: debts[debtorIndex].phone,
+            debts: [], // Очищаем историю
+            totalAmount: 0, // Сбрасываем суммы
+            totalPaid: 0,
+            createdAt: debts[debtorIndex].createdAt,
+            updatedAt: new Date().toISOString()
+        };
+        
+        // Заменяем данные должника
+        debts[debtorIndex] = debtorData;
+        
+        await writeDebts(debts);
+        res.json({ 
+            success: true, 
+            message: `История долгов для "${debtorData.name}" очищена`,
+            debtor: debtorData
+        });
+    } catch (error) {
+        console.error('Ошибка очистки истории:', error);
+        res.status(500).json({ error: 'Ошибка при очистке истории' });
+    }
+});
+
+// Старый эндпоинт удаления (оставьте для полного удаления если нужно)
 app.delete('/api/debts/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -281,6 +322,64 @@ app.delete('/api/debts/:id', async (req, res) => {
     } catch (error) {
         console.error('Ошибка удаления:', error);
         res.status(500).json({ error: 'Ошибка при удалении' });
+    }
+});
+// Удаление одной записи из истории операций
+app.delete('/api/debts/:debtorId/records/:recordId', async (req, res) => {
+    try {
+        const { debtorId, recordId } = req.params;
+        
+        debts = await readDebts();
+        
+        const debtorIndex = debts.findIndex(d => d.id === debtorId);
+        
+        if (debtorIndex === -1) {
+            return res.status(404).json({ error: 'Должник не найден' });
+        }
+
+        const debtor = debts[debtorIndex];
+        
+        if (!debtor.debts || !Array.isArray(debtor.debts)) {
+            return res.status(404).json({ error: 'Запись не найдена' });
+        }
+
+        const recordIndex = debtor.debts.findIndex(record => record.id === recordId);
+        
+        if (recordIndex === -1) {
+            return res.status(404).json({ error: 'Запись не найдена' });
+        }
+
+        // Сохраняем удаляемую запись для информации
+        const deletedRecord = debtor.debts[recordIndex];
+        
+        // Удаляем запись из истории
+        debtor.debts.splice(recordIndex, 1);
+        
+        // Пересчитываем общие суммы
+        const totalDebt = debtor.debts
+            .filter(d => d.type === 'debt')
+            .reduce((sum, debt) => sum + debt.amount, 0);
+            
+        const totalPaid = debtor.debts
+            .filter(d => d.type === 'payment')
+            .reduce((sum, payment) => sum + payment.amount, 0);
+            
+        debtor.totalAmount = totalDebt;
+        debtor.totalPaid = totalPaid;
+        debtor.updatedAt = new Date().toISOString();
+
+        await writeDebts(debts);
+        
+        res.json({ 
+            success: true,
+            message: `Запись удалена`,
+            debtor: debtor,
+            deletedRecord: deletedRecord
+        });
+        
+    } catch (error) {
+        console.error('Ошибка удаления записи:', error);
+        res.status(500).json({ error: 'Ошибка при удалении записи' });
     }
 });
 
