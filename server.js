@@ -6,7 +6,6 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Готовый bin ID - я создал его для вас
 const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || '6905c636ae596e708f3c09a8';
 const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || '$2a$10$J24VfFSehaO.P78eeSB/feH0/x9TKke3QBNn5eaCyqzwEnwv/w4sC';
 
@@ -16,11 +15,9 @@ const JSONBIN_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-// Middleware
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// Функции для работы с JSONBin.io
 const readDebts = async () => {
     try {
         const response = await axios.get(JSONBIN_URL, {
@@ -31,7 +28,6 @@ const readDebts = async () => {
     } catch (error) {
         console.error('❌ Ошибка чтения:', error.response?.data || error.message);
         
-        // Если bin не существует или пустой, возвращаем пустой массив
         if (error.response?.status === 404 || error.response?.status === 400) {
             console.log('Bin не найден или пустой, создаем начальные данные...');
             const initialData = { debts: [] };
@@ -57,7 +53,6 @@ const writeDebts = async (debts) => {
     }
 };
 
-// Инициализация данных
 let debts = [];
 
 const initializeData = async () => {
@@ -68,7 +63,6 @@ const initializeData = async () => {
 
 initializeData();
 
-// Routes
 app.get('/api/debts', async (req, res) => {
     try {
         debts = await readDebts();
@@ -81,18 +75,16 @@ app.get('/api/debts', async (req, res) => {
 
 app.post('/api/debts', async (req, res) => {
     try {
-        const { name, amount, comment } = req.body;
+        const { name, phone, amount, comment } = req.body;
         
         if (!name || !amount) {
             return res.status(400).json({ error: 'Имя и сумма обязательны' });
         }
 
-        // Обновляем данные из JSONBin
         debts = await readDebts();
 
         const normalizedName = name.trim().toLowerCase();
         
-        // Проверяем существующего должника
         const existingDebtorIndex = debts.findIndex(d => d.name.toLowerCase() === normalizedName);
         
         const debtRecord = {
@@ -104,13 +96,15 @@ app.post('/api/debts', async (req, res) => {
         };
 
         if (existingDebtorIndex !== -1) {
-            // Добавляем к существующему должнику
             if (!debts[existingDebtorIndex].debts) {
                 debts[existingDebtorIndex].debts = [];
             }
             debts[existingDebtorIndex].debts.push(debtRecord);
             
-            // Пересчитываем общую сумму
+            if (phone) {
+                debts[existingDebtorIndex].phone = phone.trim();
+            }
+            
             const totalDebt = debts[existingDebtorIndex].debts
                 .filter(d => d.type === 'debt')
                 .reduce((sum, debt) => sum + debt.amount, 0);
@@ -123,14 +117,13 @@ app.post('/api/debts', async (req, res) => {
             debts[existingDebtorIndex].totalPaid = totalPaid;
             debts[existingDebtorIndex].updatedAt = new Date().toISOString();
             
-            // Сохраняем в JSONBin
             await writeDebts(debts);
             res.json(debts[existingDebtorIndex]);
         } else {
-            // Создаем нового должника
             const newDebtor = {
                 id: Date.now().toString(),
                 name: name.trim(),
+                phone: phone ? phone.trim() : '',
                 debts: [debtRecord],
                 totalAmount: Math.abs(parseFloat(amount)),
                 totalPaid: 0,
@@ -156,7 +149,6 @@ app.post('/api/debts/:id/pay', async (req, res) => {
             return res.status(400).json({ error: 'Введите корректную сумму' });
         }
 
-        // Обновляем данные из JSONBin
         debts = await readDebts();
 
         const debtorIndex = debts.findIndex(d => d.id === id);
@@ -173,13 +165,11 @@ app.post('/api/debts/:id/pay', async (req, res) => {
             type: 'payment'
         };
 
-        // Добавляем платеж в поле 'debts'
         if (!debts[debtorIndex].debts) {
             debts[debtorIndex].debts = [];
         }
         debts[debtorIndex].debts.push(paymentRecord);
         
-        // Пересчитываем баланс
         const totalDebt = debts[debtorIndex].debts
             .filter(d => d.type === 'debt')
             .reduce((sum, debt) => sum + debt.amount, 0);
@@ -209,7 +199,6 @@ app.post('/api/debts/:id/add-debt', async (req, res) => {
             return res.status(400).json({ error: 'Введите корректную сумму' });
         }
 
-        // Обновляем данные из JSONBin
         debts = await readDebts();
 
         const debtorIndex = debts.findIndex(d => d.id === id);
@@ -226,13 +215,11 @@ app.post('/api/debts/:id/add-debt', async (req, res) => {
             type: 'debt'
         };
 
-        // Добавляем долг в поле 'debts'
         if (!debts[debtorIndex].debts) {
             debts[debtorIndex].debts = [];
         }
         debts[debtorIndex].debts.push(debtRecord);
         
-        // Пересчитываем баланс
         const totalDebt = debts[debtorIndex].debts
             .filter(d => d.type === 'debt')
             .reduce((sum, debt) => sum + debt.amount, 0);
@@ -257,7 +244,6 @@ app.get('/api/debts/search', async (req, res) => {
     try {
         const { q } = req.query;
         
-        // Обновляем данные из JSONBin
         debts = await readDebts();
         
         if (!q) {
@@ -278,7 +264,6 @@ app.delete('/api/debts/:id', async (req, res) => {
     try {
         const { id } = req.params;
         
-        // Обновляем данные из JSONBin
         debts = await readDebts();
         
         const debtToDelete = debts.find(d => d.id === id);
@@ -299,7 +284,6 @@ app.delete('/api/debts/:id', async (req, res) => {
     }
 });
 
-// Health check endpoint
 app.get('/api/health', async (req, res) => {
     try {
         await readDebts();
@@ -316,7 +300,6 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// Запуск сервера
 app.listen(PORT, () => {
     console.log(`🚀 Сервер запущен на порту ${PORT}`);
     console.log(`📱 Откройте в браузере: http://localhost:${PORT}`);

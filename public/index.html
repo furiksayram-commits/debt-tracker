@@ -14,52 +14,56 @@
         </header>
 
         <div class="card">
-    <h2>📝 Новый долг</h2>
-    <form id="debtForm">
-        <div class="form-group">
-            <input type="text" id="name" placeholder="Имя должника" required autocomplete="off">
-            <!-- Крестик появится здесь автоматически -->
+            <h2>📝 Новый долг</h2>
+            <form id="debtForm">
+                <div class="form-group">
+                    <input type="text" id="name" placeholder="Имя должника" required 
+                           autocomplete="name" class="contact-field">
+                </div>
+                <div class="form-group">
+                    <input type="tel" id="phone" placeholder="Телефон (необязательно)" 
+                           autocomplete="tel" class="contact-field">
+                </div>
+                <div class="form-group">
+                    <input type="number" id="amount" placeholder="Сумма долга" step="1" min="1" required>
+                </div>
+                <div class="form-group">
+                    <textarea id="comment" placeholder="Комментарий (необязательно)"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    💰 Добавить долг
+                </button>
+            </form>
         </div>
-        <div class="form-group">
-            <input type="number" id="amount" placeholder="Сумма долга" step="1" min="1" required>
-        </div>
-        <div class="form-group">
-            <textarea id="comment" placeholder="Комментарий (необязательно)"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">
-            💰 Добавить долг
-        </button>
-    </form>
-</div>
 
         <div class="card">
-    <h2>📊 Статистика</h2>
-    <div id="statsContainer">
-        <div class="stats-grid">
-            <div class="stat-item clickable">
-                <div class="stat-value">0₸</div>
-                <div class="stat-label">Всего долг</div>
-            </div>
-            <div class="stat-item clickable">
-                <div class="stat-value">0₸</div>
-                <div class="stat-label">Осталось</div>
-            </div>
-            <div class="stat-item clickable">
-                <div class="stat-value">0₸</div>
-                <div class="stat-label">Оплачено</div>
-            </div>
-            <div class="stat-item clickable">
-                <div class="stat-value">0</div>
-                <div class="stat-label">Активных</div>
+            <h2>📊 Статистика</h2>
+            <div id="statsContainer">
+                <div class="stats-grid">
+                    <div class="stat-item clickable">
+                        <div class="stat-value">0₸</div>
+                        <div class="stat-label">Всего долг</div>
+                    </div>
+                    <div class="stat-item clickable">
+                        <div class="stat-value">0₸</div>
+                        <div class="stat-label">Осталось</div>
+                    </div>
+                    <div class="stat-item clickable">
+                        <div class="stat-value">0₸</div>
+                        <div class="stat-label">Оплачено</div>
+                    </div>
+                    <div class="stat-item clickable">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Активных</div>
+                    </div>
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">Все</button>
+                    <button class="filter-btn" data-filter="active">Активные (0)</button>
+                    <button class="filter-btn" data-filter="paid">Оплаченные (0)</button>
+                </div>
             </div>
         </div>
-        <div class="filter-buttons">
-            <button class="filter-btn active" data-filter="all">Все</button>
-            <button class="filter-btn" data-filter="active">Активные (0)</button>
-            <button class="filter-btn" data-filter="paid">Оплаченные (0)</button>
-        </div>
-    </div>
-</div>
 
         <div class="card">
             <h2>🔍 Поиск</h2>
