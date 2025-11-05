@@ -153,7 +153,7 @@ textarea {
 
 .debt-item {
     background: var(--surface);
-    padding: 15px;
+    padding: 6px;
     margin-bottom: 15px;
     border-radius: 10px;
     border-left: 4px solid var(--primary);
@@ -916,3 +916,4 @@ input, textarea, button {
         font-size: 12px;
     }
 }
+
