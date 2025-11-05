@@ -878,3 +878,31 @@ input[inputmode="numeric"] {
     font-weight: bold;
     white-space: nowrap;
 }
+
+/* Предотвращение увеличения экрана на iOS */
+input, textarea, select {
+    font-size: 16px !important; /* Минимальный размер шума для предотвращения зума */
+}
+
+/* Для современных браузеров */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="number"],
+    input[type="search"],
+    textarea {
+        font-size: 16px;
+        transform: scale(1);
+        line-height: 1.4;
+    }
+    
+    /* Убедитесь, что поля ввода достаточно большие для касания */
+    input, textarea {
+        min-height: 44px; /* Минимальная высота для удобного касания */
+    }
+}
+
+/* Дополнительные стили для предотвращения зума */
+.form-group input:focus,
+.form-group textarea:focus {
+    font-size: 16px !important;
+}
