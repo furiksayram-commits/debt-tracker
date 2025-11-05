@@ -906,3 +906,37 @@ input, textarea, select {
 .form-group textarea:focus {
     font-size: 16px !important;
 }
+
+/* Улучшение для мобильного автозаполнения */
+@media (max-width: 768px) {
+    input, textarea {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+    }
+    
+    /* Убедимся, что автозаполнение видно */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus {
+        -webkit-text-fill-color: #1e293b;
+        -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
+        font-size: 16px !important;
+    }
+}
+
+/* Стиль для кнопки списка должников */
+#showAllDebtors {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#showAllDebtors:hover {
+    background: var(--primary-dark);
+}

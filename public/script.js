@@ -30,65 +30,61 @@ class DebtTracker {
     }
 
     setupEventListeners() {
-        const debtForm = document.getElementById('debtForm');
-        if (debtForm) {
-            debtForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.addDebt();
-            });
-        }
-
-        const searchInput = document.getElementById('search');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                this.searchDebts(e.target.value);
-                this.toggleClearButton(searchInput);
-            });
-            this.addClearButton(searchInput);
-        }
-
-        const nameInput = document.getElementById('name');
-        if (nameInput) {
-            nameInput.addEventListener('input', (e) => {
-                const value = e.target.value;
-                this.toggleClearButton(nameInput);
-                this.handleNameInput(value);
-            });
-            
-            nameInput.addEventListener('focus', (e) => {
-                const value = e.target.value;
-                this.toggleClearButton(nameInput);
-                this.handleNameInput(value);
-            });
-            
-            nameInput.addEventListener('blur', () => {
-                setTimeout(() => {
-                    this.hideContactSuggestions();
-                }, 200);
-            });
-            
-            // Добавляем специальный крестик для имени, который очищает всю форму
-            this.addNameClearButton(nameInput);
-        }
-
-        const phoneInput = document.getElementById('phone');
-        if (phoneInput) {
-            // Для телефона обычный крестик, очищает только телефон
-            this.addClearButton(phoneInput);
-        }
-
-        const amountInput = document.getElementById('amount');
-        if (amountInput) {
-            amountInput.setAttribute('inputmode', 'numeric');
-            amountInput.setAttribute('pattern', '[0-9]*');
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.form-group') && !e.target.closest('.contact-suggestions')) {
-                this.hideContactSuggestions();
-            }
+    const debtForm = document.getElementById('debtForm');
+    if (debtForm) {
+        debtForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addDebt();
         });
     }
+
+    const searchInput = document.getElementById('search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            this.searchDebts(e.target.value);
+            this.toggleClearButton(searchInput);
+        });
+        
+        // Добавляем крестик для поиска
+        this.addClearButton(searchInput);
+    }
+
+    // Автодополнение для поля имени
+    const nameInput = document.getElementById('name');
+    if (nameInput) {
+        // Основной обработчик ввода
+        nameInput.addEventListener('input', (e) => {
+            this.handleNameInput(e.target.value);
+            this.toggleClearButton(nameInput);
+        });
+        
+        // Обработчик для автозаполнения браузера
+        nameInput.addEventListener('change', (e) => {
+            setTimeout(() => {
+                this.handleNameInput(e.target.value);
+                this.toggleClearButton(nameInput);
+                // Показываем информацию о существующем должнике при автозаполнении
+                if (e.target.value.trim()) {
+                    this.showExistingDebtorInfo(e.target.value.trim());
+                }
+            }, 100);
+        });
+        
+        nameInput.addEventListener('focus', (e) => {
+            this.handleNameInput(e.target.value);
+            this.toggleClearButton(nameInput);
+        });
+        
+        nameInput.addEventListener('blur', () => {
+            setTimeout(() => {
+                this.hideSuggestions();
+            }, 200);
+        });
+        
+        // Добавляем крестик для имени
+        this.addClearButton(nameInput);
+    }
+}
 
     // Специальный метод для крестика имени, который очищает всю форму
     addNameClearButton(inputElement) {
@@ -148,14 +144,27 @@ class DebtTracker {
     }
 
     handleNameInput(value) {
-        if (value.length < 1) {
-            this.hideContactSuggestions();
-            return;
-        }
-
-        const matches = this.findContactMatches(value);
-        this.showContactSuggestions(matches);
+    const suggestionsContainer = document.getElementById('nameSuggestions');
+    if (!suggestionsContainer) {
+        this.createSuggestionsContainer();
     }
+    
+    // Скрываем подсказки если поле пустое или если это автозаполнение браузера
+    if (value.length < 1) {
+        this.hideSuggestions();
+        return;
+    }
+    
+    // Не показываем подсказки если значение пришло из автозаполнения браузера
+    // Ждем небольшое время чтобы отличить ручной ввод от автозаполнения
+    setTimeout(() => {
+        const currentValue = document.getElementById('name').value;
+        if (currentValue === value) {
+            const matches = this.findNameMatches(value);
+            this.showSuggestions(matches, value);
+        }
+    }, 100);
+}
 
     findContactMatches(query) {
         const lowerQuery = query.toLowerCase();
