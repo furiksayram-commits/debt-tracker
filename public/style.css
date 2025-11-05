@@ -171,12 +171,6 @@ textarea {
     margin-bottom: 3px;
 }
 
-.debt-phone {
-    font-size: 0.8rem;
-    color: var(--text-light);
-    margin-bottom: 5px;
-}
-
 .debt-summary {
     display: flex;
     align-items: center;
@@ -420,37 +414,50 @@ textarea {
     border-left: 4px solid var(--whatsapp);
 }
 
-.phone-info {
+.phone-info-compact {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    font-size: 0.8rem;
 }
 
-.phone-label {
-    font-weight: 600;
-    color: var(--text);
+.phone-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
 }
 
-.phone-number {
-    color: var(--primary);
-    font-weight: 500;
+.btn-call {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    white-space: nowrap;
 }
 
-.btn-whatsapp-small {
+.btn-call:hover {
+    background: #0da271;
+}
+
+.btn-whatsapp-compact {
     background: var(--whatsapp);
     color: white;
     border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
     cursor: pointer;
-    margin-left: 10px;
     transition: background 0.3s;
+    white-space: nowrap;
 }
 
-.btn-whatsapp-small:hover {
+.btn-whatsapp-compact:hover {
     background: #128C7E;
 }
 
@@ -637,6 +644,7 @@ textarea {
     transition: all 0.3s ease;
     opacity: 0;
     visibility: hidden;
+    z-index: 2;
 }
 
 .clear-input.visible {
@@ -671,7 +679,7 @@ input.has-clear-button {
 }
 
 .contact-suggestion {
-    padding: 10px 12px;
+    padding: 8px 12px;
     cursor: pointer;
     border-bottom: 1px solid #f1f3f4;
     display: flex;
@@ -706,9 +714,9 @@ input.has-clear-button {
 
 .contact-balance {
     font-weight: 600;
-    color: var(--primary);
-    font-size: 12px;
+    font-size: 11px;
     margin-left: 10px;
+    white-space: nowrap;
 }
 
 .contact-balance.debt {
@@ -755,6 +763,18 @@ input.has-clear-button {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Стили для мобильной клавиатуры */
+input[type="number"] {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: none;
+}
+
+input[inputmode="numeric"] {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
 @media (max-width: 480px) {
     body {
         padding: 10px;
@@ -782,15 +802,32 @@ input.has-clear-button {
         padding: 12px;
     }
     
-    .phone-info {
-        flex-direction: column;
-        align-items: flex-start;
+    .phone-info-compact {
+        flex-wrap: wrap;
+        gap: 6px;
     }
     
-    .btn-whatsapp-small {
-        margin-left: 0;
-        margin-top: 8px;
-        width: 100%;
+    .phone-actions {
+        margin-left: auto;
+    }
+    
+    .btn-call,
+    .btn-whatsapp-compact {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+    
+    .contact-suggestions {
+        position: fixed;
+        top: auto;
+        left: 20px;
+        right: 20px;
+        max-height: 150px;
+    }
+    
+    /* Улучшение для мобильной клавиатуры */
+    input[type="number"] {
+        font-size: 16px; /* Предотвращает зум на iOS */
     }
 }
 
@@ -804,30 +841,12 @@ input.has-clear-button {
         min-width: 100px;
         text-align: center;
     }
-    
-    .contact-suggestions {
-        position: fixed;
-        top: auto;
-        left: 20px;
-        right: 20px;
-        max-height: 150px;
-    }
 }
 
+/* Убедимся, что на мобильных устройствах появляется числовая клавиатура */
 @media screen and (max-width: 768px) {
-    input[type="text"],
-    input[type="number"],
-    input[type="tel"],
-    input[type="search"],
-    textarea {
+    input[type="number"] {
         font-size: 16px;
-        line-height: 1.4;
-        min-height: 44px;
-    }
-    
-    input:focus,
-    textarea:focus {
-        font-size: 16px !important;
     }
 }
 
@@ -837,4 +856,25 @@ input.has-clear-button {
     -moz-appearance: none;
     appearance: none;
     border-radius: 8px;
+}
+
+/* Специальный стиль для крестика, который очищает всю форму */
+.clear-all {
+    background: var(--warning) !important;
+}
+
+.clear-all:hover {
+    background: #d97706 !important;
+}
+
+.clear-all::after {
+    content: ' все';
+    font-size: 0.7rem;
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--warning);
+    font-weight: bold;
+    white-space: nowrap;
 }
