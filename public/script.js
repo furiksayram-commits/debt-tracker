@@ -390,7 +390,8 @@ class DebtTracker {
         }
 
         const phoneNumber = debtor.phone.replace(/[^\d+]/g, '');
-        const message = `Ассалому Алейкум! ${debtor.name}  
+        const message = `Ассалому Алейкум! 
+        ${debtor.name}  
         Остаток долга: *${this.formatNumber(remaining)}₸*`;
         
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
