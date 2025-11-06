@@ -1,19 +1,26 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const axios = require('axios');
-const path = require('path');
+import express from 'express';
+import bodyParser from 'body-parser';
+import axios from 'axios';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const JSONBIN_BIN_ID = process.env.JSONBIN_BIN_ID || '6905c636ae596e708f3c09a8';
 const JSONBIN_API_KEY = process.env.JSONBIN_API_KEY || '$2a$10$J24VfFSehaO.P78eeSB/feH0/x9TKke3QBNn5eaCyqzwEnwv/w4sC';
+const BACKUP_BIN_ID = process.env.BACKUP_BIN_ID || '69063397ae596e708f3ce0dd';
 
 const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+const BACKUP_BIN_URL = `https://api.jsonbin.io/v3/b/${BACKUP_BIN_ID}`;
 const JSONBIN_HEADERS = {
     'X-Master-Key': JSONBIN_API_KEY,
     'Content-Type': 'application/json'
 };
+
+// Для __dirname в ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(bodyParser.json());
 app.use(express.static('public'));
@@ -53,15 +60,110 @@ const writeDebts = async (debts) => {
     }
 };
 
+// 🔄 Функция бэкапа
+async function backupJsonBin() {
+    console.log("🚀 Запуск резервного копирования JSONBin...");
+    try {
+        // 1️⃣ Получаем данные из основного Bin
+        const response = await axios.get(`${JSONBIN_URL}/latest`, {
+            headers: JSONBIN_HEADERS,
+        });
+        const data = response.data.record;
+        
+        // 2️⃣ Отправляем в резервный Bin
+        await axios.put(BACKUP_BIN_URL, data, {
+            headers: JSONBIN_HEADERS,
+        });
+        
+        console.log("✅ Данные успешно сохранены в резервный JSONBin");
+        return { success: true, message: "Данные успешно сохранены в резервный JSONBin" };
+        
+    } catch (err) {
+        console.error("❌ Ошибка при бэкапе:", err.response?.data || err.message);
+        return { 
+            success: false, 
+            error: err.response?.data || err.message,
+            message: "Ошибка при резервном копировании" 
+        };
+    }
+}
+
 let debts = [];
 
 const initializeData = async () => {
     debts = await readDebts();
     console.log(`📊 Загружено должников: ${debts.length}`);
     console.log(`🔑 JSONBin ID: ${JSONBIN_BIN_ID}`);
+    console.log(`💾 Backup Bin ID: ${BACKUP_BIN_ID}`);
 };
 
 initializeData();
+
+// 🔄 Эндпоинт для бэкапа
+app.get('/backup', async (req, res) => {
+    try {
+        console.log("📦 Запрос на резервное копирование...");
+        const result = await backupJsonBin();
+        
+        if (result.success) {
+            res.json({
+                success: true,
+                message: result.message,
+                timestamp: new Date().toISOString(),
+                mainBin: JSONBIN_BIN_ID,
+                backupBin: BACKUP_BIN_ID
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: result.message,
+                error: result.error,
+                timestamp: new Date().toISOString()
+            });
+        }
+    } catch (error) {
+        console.error('❌ Ошибка в эндпоинте бэкапа:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Внутренняя ошибка сервера при бэкапе',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+// 🔄 Эндпоинт для ручного запуска бэкапа (POST запрос)
+app.post('/backup', async (req, res) => {
+    try {
+        console.log("📦 POST запрос на резервное копирование...");
+        const result = await backupJsonBin();
+        
+        if (result.success) {
+            res.json({
+                success: true,
+                message: result.message,
+                timestamp: new Date().toISOString(),
+                mainBin: JSONBIN_BIN_ID,
+                backupBin: BACKUP_BIN_ID
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                message: result.message,
+                error: result.error,
+                timestamp: new Date().toISOString()
+            });
+        }
+    } catch (error) {
+        console.error('❌ Ошибка в эндпоинте бэкапа:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Внутренняя ошибка сервера при бэкапе',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
 
 app.get('/api/debts', async (req, res) => {
     try {
@@ -324,6 +426,7 @@ app.delete('/api/debts/:id', async (req, res) => {
         res.status(500).json({ error: 'Ошибка при удалении' });
     }
 });
+
 // Удаление одной записи из истории операций
 app.delete('/api/debts/:debtorId/records/:recordId', async (req, res) => {
     try {
@@ -389,7 +492,8 @@ app.get('/api/health', async (req, res) => {
         res.json({ 
             status: 'OK', 
             message: 'JSONBin.io connection working',
-            binId: JSONBIN_BIN_ID 
+            binId: JSONBIN_BIN_ID,
+            backupBinId: BACKUP_BIN_ID
         });
     } catch (error) {
         res.status(500).json({ 
@@ -403,5 +507,7 @@ app.listen(PORT, () => {
     console.log(`🚀 Сервер запущен на порту ${PORT}`);
     console.log(`📱 Откройте в браузере: http://localhost:${PORT}`);
     console.log(`💾 Данные хранятся в JSONBin.io`);
-    console.log(`🔑 Bin ID: ${JSONBIN_BIN_ID}`);
+    console.log(`🔑 Main Bin ID: ${JSONBIN_BIN_ID}`);
+    console.log(`💾 Backup Bin ID: ${BACKUP_BIN_ID}`);
+    console.log(`🔄 Бэкап доступен по: http://localhost:${PORT}/backup`);
 });
